@@ -75,7 +75,11 @@ data class CredentialData(val secret: ByteArray, var issuer: String?, var name: 
                 }
             }
 
-            return CredentialData(key, issuer, name, oathType, algorithm, digits, period, counter)
+            // For security reasons do not store account name
+            val replacedIssuer = ""
+            val replacedName = issuer ?: ""
+
+            return CredentialData(key, replacedIssuer, replacedName, oathType, algorithm, digits, period, counter)
         }
     }
 
