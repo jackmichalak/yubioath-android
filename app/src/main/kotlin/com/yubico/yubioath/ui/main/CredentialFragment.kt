@@ -74,6 +74,10 @@ class CredentialFragment : ListFragment(), CoroutineScope {
 
     private val adapter: CredentialAdapter by lazy { listAdapter as CredentialAdapter }
 
+    // Copied from CredentialAdapter
+    private fun Code?.valid(): Boolean = this != null && validUntil > System.currentTimeMillis()
+    private fun Code?.canRefresh(): Boolean = this == null || validFrom + 5000 < System.currentTimeMillis()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         job = Job()
@@ -156,6 +160,14 @@ class CredentialFragment : ListFragment(), CoroutineScope {
                     selectItem(position)
                 }
             } ?: listView.setItemChecked(position, false)
+            if (actionMode == null) {
+                val (credential, code) = adapter.getItem(position)
+                if (credential.type == OathType.HOTP && code.canRefresh() || credential.touch && !code.valid()) {
+                    actions.calculate(credential)
+                } else if (code != null) {
+                    actions.copy(code)
+                }
+            }
         }
         listView.onItemLongClickListener = AdapterView.OnItemLongClickListener { _, _, position, _ ->
             selectItem(position)
